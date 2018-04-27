@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+    <link rel="icon" href="https://getbootstrap.com/favicon.ico">
+
+    <title>iTunesApiExample</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="./bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="./album.css" rel="stylesheet">
+    <script type="text/javascript" src="./knockout-3.4.2.js"></script>
+    <script type="text/javascript" src="./jquery-3.3.1.min.js"></script>
+  <body>
+
+    <header class="container">
+    
+        <nav class="navbar navbar-light justify-content-center">
+          <a class="navbar-brand " href="#">
+            <img src="./logo2.png"  width="100" alt="">
+          </a>
+        </nav>
+
+    </header>
+
+    <div class="wrapper">
+      <main role="main">
+        <section class="jumbotron text-center">
+          <div class="container">
+              <h2>iTunes api example</h2>
+              <div class="row justify-content-center">
+                  <div class="input-group mb-3 col-lg-4 col-md-6 song-searcher">
+                    <input type="text" data-bind = "value: searchText" class="form-control" placeholder="Search songs..." aria-label="" aria-describedby="basic-addon2">
+                    <div class="input-group-append">
+                      <button class="btn btn-warning" data-bind = "click: Search" type="button">Search</button>
+                    </div>
+                  </div>
+              </div>
+              <small>Search by song title, author, song number, lyrics, catalog od copyrigth owner</small>
+          </div>
+                
+            
+        </section>
+
+        <div class="album py-5 search-panel">
+          <div class="container">
+
+            <div class="row mb-4">
+              <div data-bind = "visible:recordCount()==0" class="col-lg-12 text-center">
+                <p>Sorry, no matches found</p>
+              </div>
+              <div data-bind="visible: recordCount() > 0" class="text-center col-lg-12">
+                <p>Found <span data-bind="text: recordCount"></span> songs</p>
+              </div>
+              <!-- ko foreach: visibleSongs -->
+                <div class="col-lg-4 song-container">
+                  <div class="container">
+                    <div class="media row">
+                      <img class="col-5" data-bind = "attr:{src: artworkUrl100}" data-holder-rendered="true">
+
+                      <div class="col-7 media-body">
+                        <h6 class="mt-0 text-center" ><b data-bind="text:trackName"></b></h6>
+                        <hr class ="song-separator"/>
+                        <p class="text-center">by <span data-bind="text:artistName"></span></p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <!-- /ko -->
+            </div>
+            <div class="text-center" data-bind = "visible:recordCount()>9">
+              <button type="button" class="btn btn-warning " data-bind="click:Prev, visible:currentPage()!=0">&lt;&lt; prev</button>
+              <button type="button" class="btn btn-warning" data-bind="click:Next, visible:(currentPage()+1)*9<recordCount()" >next &gt;&gt;</button>
+            </div>
+
+          </div>
+        </div>
+
+      </main>
+    </div>
+
+      <footer class="footer-text">
+        <div class="container">
+         <p class="text-center"><span>by mplocka</span></p>
+        </div>
+      </footer>
+<script type="text/javascript">
+
+  // This is a simple *viewmodel* - JavaScript that defines the data and behavior of your UI
+  function AppViewModel() {
+      this.searchText = ko.observable("");
+      this.songs = ko.observableArray([]);
+      this.recordCount = ko.observable(-1);
+      this.visibleSongs = ko.observableArray([]);
+      this.currentPage = ko.observable(0);
+      
+      this.Search = function(){
+          var searchText = this.searchText();
+          var request = $.ajax({
+            url: "https://itunes.apple.com/search?term="+searchText+"&entity=song&limit=100",
+            method: "GET",
+          });
+           
+          var self = this;
+          request.done(function( msg ) {
+            var data = JSON.parse(msg);
+            self.songs([]);
+            self.recordCount(data.resultCount);
+            self.visibleSongs([]);
+            if(data.resultCount > 0) {
+              for(var x of data.results){
+                self.songs.push(x);
+              }
+              for(var x=0, y=data.resultCount > 9 ? 9 : data.resultCount ; x < y ; x++ ){
+                self.visibleSongs.push(data.results[x]);
+              }
+              self.currentPage(0);
+            }
+          });
+           
+          request.fail(function( jqXHR, textStatus ) {
+            alert( "Request failed: " + textStatus );
+          });
+      };
+
+      this.Prev = function(){
+        if(this.currentPage()<1){
+          return;
+        }
+        this.currentPage(this.currentPage()-1);
+        this.visibleSongs([]);
+         for(var x=this.currentPage()*9, y=this.recordCount() -this.currentPage()*9 > 9 ? 9+this.currentPage()*9  : this.recordCount(); x < y ; x++ ){
+                this.visibleSongs.push(this.songs()[x]);
+              }
+
+      };
+
+      this.Next = function(){
+        if((this.currentPage()+1)*9>=this.recordCount()){
+           return;
+        }
+        this.currentPage(this.currentPage()+1);
+        this.visibleSongs([]);
+         for(var x=this.currentPage()*9, y=this.recordCount() -this.currentPage()*9 > 9 ? 9+this.currentPage()*9  : this.recordCount(); x < y ; x++ ){
+                this.visibleSongs.push(this.songs()[x]);
+              }
+
+
+      };
+
+      
+  }
+
+// Activates knockout.js
+ko.applyBindings(new AppViewModel());
+
+</script>
+
+</body></html>
