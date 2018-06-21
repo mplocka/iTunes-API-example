@@ -10,12 +10,12 @@
     <title>iTunesApiExample</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="./bootstrap.min.css" rel="stylesheet">
+    <link href="node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
     <link href="./album.css" rel="stylesheet">
-    <script type="text/javascript" src="./knockout-3.4.2.js"></script>
-    <script type="text/javascript" src="./jquery-3.3.1.min.js"></script>
+    <script type="text/javascript" src="node_modules/knockout/build/output/knockout-latest.js"></script>
+    <script type="text/javascript" src="node_modules/jquery/dist/jquery.min.js"></script>
   <body>
 
     <header class="container">
@@ -89,75 +89,8 @@
          <p class="text-center"><span>by mplocka</span></p>
         </div>
       </footer>
-<script type="text/javascript">
+<script type="text/javascript" src="./index.js">
 
-  // This is a simple *viewmodel* - JavaScript that defines the data and behavior of your UI
-  function AppViewModel() {
-      this.searchText = ko.observable("");
-      this.songs = ko.observableArray([]);
-      this.recordCount = ko.observable(-1);
-      this.visibleSongs = ko.observableArray([]);
-      this.currentPage = ko.observable(0);
-      
-      this.Search = function(){
-          var searchText = this.searchText();
-          var request = $.ajax({
-            url: "https://itunes.apple.com/search?term="+searchText+"&entity=song&limit=100",
-            method: "GET",
-          });
-           
-          var self = this;
-          request.done(function( msg ) {
-            var data = JSON.parse(msg);
-            self.songs([]);
-            self.recordCount(data.resultCount);
-            self.visibleSongs([]);
-            if(data.resultCount > 0) {
-              for(var x of data.results){
-                self.songs.push(x);
-              }
-              for(var x=0, y=data.resultCount > 9 ? 9 : data.resultCount ; x < y ; x++ ){
-                self.visibleSongs.push(data.results[x]);
-              }
-              self.currentPage(0);
-            }
-          });
-           
-          request.fail(function( jqXHR, textStatus ) {
-            alert( "Request failed: " + textStatus );
-          });
-      };
-
-      this.Prev = function(){
-        if(this.currentPage()<1){
-          return;
-        }
-        this.currentPage(this.currentPage()-1);
-        this.visibleSongs([]);
-         for(var x=this.currentPage()*9, y=this.recordCount() -this.currentPage()*9 > 9 ? 9+this.currentPage()*9  : this.recordCount(); x < y ; x++ ){
-                this.visibleSongs.push(this.songs()[x]);
-              }
-
-      };
-
-      this.Next = function(){
-        if((this.currentPage()+1)*9>=this.recordCount()){
-           return;
-        }
-        this.currentPage(this.currentPage()+1);
-        this.visibleSongs([]);
-         for(var x=this.currentPage()*9, y=this.recordCount() -this.currentPage()*9 > 9 ? 9+this.currentPage()*9  : this.recordCount(); x < y ; x++ ){
-                this.visibleSongs.push(this.songs()[x]);
-              }
-
-
-      };
-
-      
-  }
-
-// Activates knockout.js
-ko.applyBindings(new AppViewModel());
 
 </script>
 
